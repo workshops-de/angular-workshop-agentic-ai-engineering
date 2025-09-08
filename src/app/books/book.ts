@@ -1,3 +1,9 @@
+export enum BookStatus {
+  Unread = 'unread',
+  Backlog = 'backlog',
+  Read = 'read'
+}
+
 export interface Book {
   id: string;
   isbn: string;
@@ -10,4 +16,5 @@ export interface Book {
   cover: string;
   abstract: string;
   userId: number;
+  status?: BookStatus;
 }
