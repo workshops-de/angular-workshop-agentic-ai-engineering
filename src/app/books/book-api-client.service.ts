@@ -1,13 +1,12 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Book } from './book';
 
 @Injectable({ providedIn: 'root' })
 export class BookApiClient {
+  private readonly http = inject(HttpClient);
   private readonly apiUrl = 'http://localhost:4730/books';
-
-  constructor(private http: HttpClient) {}
 
   getBooks(pageSize: number = 10, searchTerm?: string): Observable<Book[]> {
     let params = new HttpParams().set('_limit', pageSize.toString());
