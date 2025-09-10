@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build.angular-mcp": "tsc --project tools/angular-mcp/tsconfig.json",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "format.write": "prettier --write \"src/**/*.{ts,html,md,css,json}\""
