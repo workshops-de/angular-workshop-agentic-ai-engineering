@@ -18,7 +18,7 @@ description: 'Instructions to refactor Angular building-blocks: components, serv
 
 - Loading State => loading-indication.component.ts
 - Error State => error-message.component.ts
-- Book Cover => book-cover.compoennt.ts
+- Book Cover => book-cover.component.ts
 
 ## Template - Best practices
 

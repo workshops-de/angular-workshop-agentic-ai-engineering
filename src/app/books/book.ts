@@ -8,7 +8,7 @@ export interface Book {
   id: string;
   isbn: string;
   title: string;
-  subtitle?: string;
+  subtitle: string;
   author: string;
   publisher: string;
   numPages: number;

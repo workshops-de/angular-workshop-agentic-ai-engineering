@@ -1,66 +1,37 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { Control, form, maxLength, min, minLength, pattern, required } from '@angular/forms/signals';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { ToastService } from '../shared/toast.service';
 import { Book } from './book';
 import { BookApiClient } from './book-api-client.service';
+import { ErrorMessageComponent } from './error-message.component';
+import { LoadingIndicationComponent } from './loading-indication.component';
 
 @Component({
   selector: 'app-book-edit',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, Control, LoadingIndicationComponent, ErrorMessageComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="container mx-auto px-4 py-8 max-w-4xl">
-      <!-- Loading State -->
       @if (loading()) {
-        <div class="flex justify-center items-center py-20">
-          <div class="animate-pulse flex flex-col items-center">
-            <div
-              class="h-16 w-16 rounded-full border-4 border-t-blue-700 border-r-blue-700 border-b-gray-200 border-l-gray-200 animate-spin"
-            ></div>
-            <p class="mt-4 text-gray-600">Loading book details...</p>
-          </div>
-        </div>
-      }
-
-      <!-- Error State -->
-      @if (error() && !loading()) {
-        <div class="flex flex-col items-center justify-center py-20 text-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-16 w-16 text-red-400 mb-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.5"
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <h2 class="text-2xl font-bold text-gray-800 mb-2">Book Not Found</h2>
-          <p class="text-gray-600 mb-6">The book you're trying to edit doesn't exist or has been removed.</p>
-          <button
-            (click)="goBack()"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-200"
-          >
-            Back to Books
-          </button>
-        </div>
-      }
-
-      <!-- Edit Form -->
-      @if (book() && !loading() && !error()) {
+        <app-loading-indication />
+      } @else if (error()) {
+        <app-error-message
+          [title]="'Book Not Found'"
+          [message]="'The book you\\'re trying to edit doesn\\'t exist or has been removed.'"
+          [backLink]="'/books'"
+          [backLabel]="'Back to Books'"
+        />
+      } @else {
         <div>
           <!-- Header -->
           <div class="flex items-center justify-between mb-8">
             <div class="flex items-center">
               <a
-                [routerLink]="['/book', book()?.id || '']"
+                [routerLink]="['/book', book() ? book().id : '']"
                 class="flex items-center text-blue-600 hover:text-blue-800 font-medium transition duration-200 mr-4"
               >
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,7 +44,7 @@ import { BookApiClient } from './book-api-client.service';
           </div>
 
           <!-- Form -->
-          <form [formGroup]="bookForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <form (ngSubmit)="onSubmit()" class="space-y-6">
             <div class="bg-white rounded-lg shadow-lg p-6">
               <!-- Title -->
               <div class="mb-6">
@@ -83,18 +54,13 @@ import { BookApiClient } from './book-api-client.service';
                 <input
                   type="text"
                   id="title"
-                  formControlName="title"
+                  [control]="bookForm.title"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  [class.border-red-500]="bookForm.get('title')?.invalid && bookForm.get('title')?.touched"
+                  [class.border-red-500]="bookForm.title().invalid()"
                 />
-                @if (bookForm.get('title')?.invalid && bookForm.get('title')?.touched) {
+                @for (error of bookForm.title().errors(); track error.kind) {
                   <div class="mt-1 text-sm text-red-600">
-                    @if (bookForm.get('title')?.errors?.['required']) {
-                      <div>Title is required.</div>
-                    }
-                    @if (bookForm.get('title')?.errors?.['minlength']) {
-                      <div>Title must be at least 2 characters long.</div>
-                    }
+                    <p>{{ error.message }}</p>
                   </div>
                 }
               </div>
@@ -105,7 +71,7 @@ import { BookApiClient } from './book-api-client.service';
                 <input
                   type="text"
                   id="subtitle"
-                  formControlName="subtitle"
+                  [control]="bookForm.subtitle"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -118,15 +84,13 @@ import { BookApiClient } from './book-api-client.service';
                 <input
                   type="text"
                   id="author"
-                  formControlName="author"
+                  [control]="bookForm.author"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  [class.border-red-500]="bookForm.get('author')?.invalid && bookForm.get('author')?.touched"
+                  [class.border-red-500]="bookForm.author().invalid()"
                 />
-                @if (bookForm.get('author')?.invalid && bookForm.get('author')?.touched) {
+                @for (error of bookForm.author().errors(); track error.kind) {
                   <div class="mt-1 text-sm text-red-600">
-                    @if (bookForm.get('author')?.errors?.['required']) {
-                      <div>Author is required.</div>
-                    }
+                    <p>{{ error.message }}</p>
                   </div>
                 }
               </div>
@@ -137,15 +101,13 @@ import { BookApiClient } from './book-api-client.service';
                 <input
                   type="text"
                   id="isbn"
-                  formControlName="isbn"
+                  [control]="bookForm.isbn"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  [class.border-red-500]="bookForm.get('isbn')?.invalid && bookForm.get('isbn')?.touched"
+                  [class.border-red-500]="bookForm.isbn().invalid()"
                 />
-                @if (bookForm.get('isbn')?.invalid && bookForm.get('isbn')?.touched) {
+                @for (error of bookForm.isbn().errors(); track error.kind) {
                   <div class="mt-1 text-sm text-red-600">
-                    @if (bookForm.get('isbn')?.errors?.['pattern']) {
-                      <div>Please enter a valid ISBN format.</div>
-                    }
+                    <p>{{ error.message }}</p>
                   </div>
                 }
               </div>
@@ -158,15 +120,13 @@ import { BookApiClient } from './book-api-client.service';
                 <input
                   type="text"
                   id="publisher"
-                  formControlName="publisher"
+                  [control]="bookForm.publisher"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  [class.border-red-500]="bookForm.get('publisher')?.invalid && bookForm.get('publisher')?.touched"
+                  [class.border-red-500]="bookForm.publisher().invalid()"
                 />
-                @if (bookForm.get('publisher')?.invalid && bookForm.get('publisher')?.touched) {
+                @for (error of bookForm.publisher().errors(); track error.kind) {
                   <div class="mt-1 text-sm text-red-600">
-                    @if (bookForm.get('publisher')?.errors?.['required']) {
-                      <div>Publisher is required.</div>
-                    }
+                    <p>{{ error.message }}</p>
                   </div>
                 }
               </div>
@@ -179,19 +139,14 @@ import { BookApiClient } from './book-api-client.service';
                 <input
                   type="number"
                   id="numPages"
-                  formControlName="numPages"
+                  [control]="bookForm.numPages"
                   min="1"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  [class.border-red-500]="bookForm.get('numPages')?.invalid && bookForm.get('numPages')?.touched"
+                  [class.border-red-500]="bookForm.numPages().invalid()"
                 />
-                @if (bookForm.get('numPages')?.invalid && bookForm.get('numPages')?.touched) {
+                @for (error of bookForm.numPages().errors(); track error.kind) {
                   <div class="mt-1 text-sm text-red-600">
-                    @if (bookForm.get('numPages')?.errors?.['required']) {
-                      <div>Number of pages is required.</div>
-                    }
-                    @if (bookForm.get('numPages')?.errors?.['min']) {
-                      <div>Number of pages must be at least 1.</div>
-                    }
+                    <p>{{ error.message }}</p>
                   </div>
                 }
               </div>
@@ -204,19 +159,14 @@ import { BookApiClient } from './book-api-client.service';
                 <input
                   type="text"
                   id="price"
-                  formControlName="price"
+                  [control]="bookForm.price"
                   placeholder="e.g., $29.99"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  [class.border-red-500]="bookForm.get('price')?.invalid && bookForm.get('price')?.touched"
+                  [class.border-red-500]="bookForm.price().invalid()"
                 />
-                @if (bookForm.get('price')?.invalid && bookForm.get('price')?.touched) {
+                @for (error of bookForm.price().errors(); track error.kind) {
                   <div class="mt-1 text-sm text-red-600">
-                    @if (bookForm.get('price')?.errors?.['required']) {
-                      <div>Price is required.</div>
-                    }
-                    @if (bookForm.get('price')?.errors?.['pattern']) {
-                      <div>Please enter a valid price format (e.g., $29.99).</div>
-                    }
+                    <p>{{ error.message }}</p>
                   </div>
                 }
               </div>
@@ -227,7 +177,7 @@ import { BookApiClient } from './book-api-client.service';
                 <input
                   type="url"
                   id="cover"
-                  formControlName="cover"
+                  [control]="bookForm.cover"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -237,16 +187,14 @@ import { BookApiClient } from './book-api-client.service';
                 <label for="abstract" class="block text-sm font-medium text-gray-700 mb-2">Abstract</label>
                 <textarea
                   id="abstract"
-                  formControlName="abstract"
+                  [control]="bookForm.abstract"
                   rows="6"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  [class.border-red-500]="bookForm.get('abstract')?.invalid && bookForm.get('abstract')?.touched"
+                  [class.border-red-500]="bookForm.abstract().invalid()"
                 ></textarea>
-                @if (bookForm.get('abstract')?.invalid && bookForm.get('abstract')?.touched) {
+                @for (error of bookForm.abstract().errors(); track error.kind) {
                   <div class="mt-1 text-sm text-red-600">
-                    @if (bookForm.get('abstract')?.errors?.['maxlength']) {
-                      <div>Abstract cannot exceed 2000 characters.</div>
-                    }
+                    <p>{{ error.message }}</p>
                   </div>
                 }
               </div>
@@ -262,10 +210,11 @@ import { BookApiClient } from './book-api-client.service';
               >
                 Cancel
               </button>
+
               <button
                 type="submit"
                 class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                [disabled]="bookForm.invalid || saving()"
+                [disabled]="bookForm().invalid() || saving()"
               >
                 @if (!saving()) {
                   <span>Save Changes</span>
@@ -301,29 +250,43 @@ export class BookEditComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly bookApiClient = inject(BookApiClient);
   private readonly toastService = inject(ToastService);
-  private readonly fb = inject(FormBuilder);
 
-  book = signal<Book | null>(null);
   loading = signal(true);
   error = signal(false);
   saving = signal(false);
 
-  bookForm: FormGroup;
+  protected book = signal<Book>({
+    id: '',
+    userId: 0,
+    title: '',
+    subtitle: '',
+    author: '',
+    isbn: '',
+    publisher: '',
+    numPages: 0,
+    price: '',
+    cover: '',
+    abstract: ''
+  });
 
-  constructor() {
-    // Initialize form with validation
-    this.bookForm = this.fb.group({
-      title: ['', [Validators.required, Validators.minLength(2)]],
-      subtitle: [''],
-      author: ['', [Validators.required]],
-      isbn: [''],
-      publisher: ['', [Validators.required]],
-      numPages: ['', [Validators.required, Validators.min(1)]],
-      price: ['', [Validators.required, Validators.pattern(/^\$?\d+(\.\d{2})?$/)]],
-      cover: [''],
-      abstract: ['', [Validators.maxLength(2000)]]
-    });
-  }
+  bookForm = form(this.book, path => {
+    required(path.title, { message: 'Title is required.' });
+    minLength(path.title, 2, { message: 'Title must be at least 2 characters long.' });
+
+    required(path.isbn, { message: 'ISBN is required.' });
+
+    required(path.author, { message: 'Author is required.' });
+
+    required(path.publisher, { message: 'Publisher is required.' });
+
+    required(path.numPages, { message: 'Number of pages is required.' });
+    min(path.numPages, 1, { message: 'Number of pages must be at least 1.' });
+
+    required(path.price, { message: 'Price is required.' });
+    pattern(path.price, /^\$?\d+(\.\d{2})?$/, { message: 'Price must be a valid amount, e.g., $29.99 or 29.99.' });
+
+    maxLength(path.abstract, 2000, { message: 'Abstract cannot exceed 2000 characters.' });
+  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -351,7 +314,6 @@ export class BookEditComponent implements OnInit {
         tap(book => {
           if (book) {
             this.book.set(book);
-            this.populateForm(book);
             this.loading.set(false);
           }
         })
@@ -359,47 +321,30 @@ export class BookEditComponent implements OnInit {
       .subscribe();
   }
 
-  private populateForm(book: Book): void {
-    this.bookForm.patchValue({
-      title: book.title,
-      subtitle: book.subtitle || '',
-      author: book.author,
-      isbn: book.isbn || '',
-      publisher: book.publisher,
-      numPages: book.numPages,
-      price: book.price,
-      cover: book.cover || '',
-      abstract: book.abstract || ''
-    });
-  }
-
   onSubmit(): void {
-    if (this.bookForm.valid && this.book()) {
-      this.saving.set(true);
-
-      const updatedBook: Book = {
-        ...this.book()!,
-        ...this.bookForm.value
-      };
-
-      this.bookApiClient
-        .updateBook(this.book()!.id, updatedBook)
-        .pipe(
-          tap(updatedBook => {
-            if (updatedBook) {
-              this.toastService.show('Book updated successfully!', 3000);
-              this.router.navigate(['/book', this.book()!.id]);
-            }
-          }),
-          catchError(error => {
-            console.error('Error updating book:', error);
-            this.toastService.show('Failed to update book. Please try again.', 5000);
-            this.saving.set(false);
-            return of(null);
-          })
-        )
-        .subscribe();
+    if (this.bookForm().invalid()) {
+      return;
     }
+
+    this.saving.set(true);
+
+    this.bookApiClient
+      .updateBook(this.book()!.id, this.book())
+      .pipe(
+        tap(updatedBook => {
+          if (updatedBook) {
+            this.toastService.show('Book updated successfully!', 3000);
+            this.router.navigate(['/book', this.book().id]);
+          }
+        }),
+        catchError(error => {
+          console.error('Error updating book:', error);
+          this.toastService.show('Failed to update book. Please try again.', 5000);
+          this.saving.set(false);
+          return of(null);
+        })
+      )
+      .subscribe();
   }
 
   goBack(): void {

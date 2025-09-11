@@ -1,0 +1,161 @@
+---
+description: Migrates a Reactive or Template-Drive form to the experimental signal forms
+alwaysApply: false
+---
+
+## Basics
+
+- Building blocks for signal forms are imported from `@angular/forms/signals`
+- **Example**: `import { Control, form, maxLength, min, minLength, pattern, required } from '@angular/forms/signals';`
+- A form is created with the `form`-factory
+- The `form` takes a `WritableSignal` as first argument
+- The `form` takes an optional second argument to setup validation (see Validation)
+
+## Read value from a form
+
+```ts
+// Create form in Component
+export class SomeFormComponent {
+  protected book = signal<Book>({
+    id: '',
+    userId: 0,
+    title: '',
+    subtitle: '',
+    author: '',
+    isbn: '',
+    publisher: '',
+    numPages: 0,
+    price: '',
+    cover: '',
+    abstract: ''
+  });
+
+  protected bookForm = form(this.book);
+
+  submit() {
+    // Read actual form value via book-Signal
+    const bookValue = this.book();
+
+    // Read actual form value via form
+    const bookFormValue = this.bookForm().value();
+  }
+}
+```
+
+## Component Template
+
+- `ngForm` or `formGroup`-Directives are not used an more and can safely be removed
+- formControlName needs to be replaced with `[control]="bookForm.<control>"`
+- ngModel, [ngModel] or [(ngModel)] needs to be replaced with `[control]="bookForm.<control>"`
+
+## Template example
+
+```html
+<mat-select [control]="form.product.version">
+  @if (versions?.isLoading()) {
+  <mat-option disabled>Loading...</mat-option>
+  } @if (versions?.hasValue()) { @for (version of versions.value(); track version) {
+  <mat-option [value]="version">{{ version }}</mat-option>
+  } }
+</mat-select>
+```
+
+## Form State
+
+- A signal form exposes a signal that contains other signals which provide state information
+
+```html
+<button type="submit" [disabled]="bookForm().invalid()">Save</button>
+```
+
+- A control of a signal form exposes a signal that contains other signals which provide state information.
+
+```html
+<input type="text" [control]="bookForm.isbn" [class.border-red-500]="bookForm.isbn().invalid()" />
+```
+
+## Control errors
+
+- Each control in a form exposes its state
+
+```html
+@for (error of bookForm.isbn().errors(); track error.kind) {
+<p>{{ error.message }}</p>
+}
+```
+
+## Validation
+
+- Validation has entirely changed
+- `Validators` is not used any more
+- Helper functions are used.
+- Validation is set up in the form factory
+
+```ts
+import { Control, form, maxLength, min, minLength, pattern, required } from '@angular/forms/signals';
+
+/* ... */
+
+bookForm = form(this.book, path => {
+  required(path.title, { message: 'Title is required.' });
+  minLength(path.title, 2, { message: 'Title must be at least 2 characters long.' });
+
+  required(path.isbn, { message: 'ISBN is required.' });
+
+  required(path.author, { message: 'Author is required.' });
+
+  required(path.publisher, { message: 'Publisher is required.' });
+
+  required(path.numPages, { message: 'Number of pages is required.' });
+  min(path.numPages, 1, { message: 'Number of pages must be at least 1.' });
+
+  required(path.price, { message: 'Price is required.' });
+  pattern(path.price, /^\$?\d+(\.\d{2})?$/, { message: 'Price must be a valid amount, e.g., $29.99 or 29.99.' });
+
+  maxLength(path.abstract, 2000, { message: 'Abstract cannot exceed 2000 characters.' });
+});
+```
+
+## Signal Forms Experimental caveats
+
+- Currently, signal forms have a type error if the model has an optional property
+- For now, the optional property needs to be made required
+
+```
+// book.ts
+
+// Do not entirely work with signal forms
+export interface Book {
+  id: string;
+  isbn: string;
+  title: string;
+  subtitle?: string; // Causes error when it is bound to [control] in the template
+  author: string;
+  publisher: string;
+  numPages: number;
+  price: string;
+  cover: string;
+  abstract: string;
+  userId: number;
+}
+
+// works with signal forms
+export interface Book {
+  id: string;
+  isbn: string;
+  title: string;
+  subtitle: string; // Now subtitle is a mandatory property and can be bound to [control] in the template
+  author: string;
+  publisher: string;
+  numPages: number;
+  price: string;
+  cover: string;
+  abstract: string;
+  userId: number;
+}
+```
+
+## Resources
+
+- https://github.com/angular/angular/blob/prototype/signal-forms/packages/forms/signals/docs/signal-forms.md
+- https://github.com/angular/angular/blob/prototype/signal-forms/packages/forms/signals/docs/tutorial-v2.md
