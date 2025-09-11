@@ -1,0 +1,38 @@
+---
+alwaysApply: false
+description: 'Instructions to refactor Angular building-blocks: components, services, pipes, directives'
+---
+
+## Component
+
+### Decorator
+
+- Remove `standalone: true` if present
+
+### imports
+
+- Avoid Module imports if possible
+  - e.g. Prefer `RouterLink` over `RouterModule`
+
+## Extract Components
+
+- Loading State => loading-indication.component.ts
+- Error State => error-message.component.ts
+- Book Cover => book-cover.compoennt.ts
+
+## Template - Best practices
+
+- Prefer `[routerLink]`-Directive and Hyperlink over `(click)`-Handler and button
+- If signal is bound more than one time (e.g. book()), read the book with `@let` and reuse the template variable
+- Never use state-save-operator in templates, use `@if(book(); as book)` instead to add a guard
+- Use `@if() {} @else if ()` to chain conditions for better readability
+
+## Error Handling
+
+- Assume gobal error handling to be in place
+
+## RxJS
+
+- Keep `subscribe()`-callbacks empty, use `tap`-Operator instead to allow side-effects
+- Prefer signals over Observables.
+  - Use @angular/core/rxjs-interop to convert Observables to signals if it simplifies the code

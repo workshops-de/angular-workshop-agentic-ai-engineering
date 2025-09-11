@@ -8,7 +8,6 @@ import { KanbanService } from './kanban.service';
 
 @Component({
   selector: 'app-kanban-board',
-  standalone: true,
   imports: [DragDropModule, FormsModule, RouterLink, KanbanColumnComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

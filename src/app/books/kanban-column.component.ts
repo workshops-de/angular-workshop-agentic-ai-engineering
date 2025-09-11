@@ -5,7 +5,6 @@ import { Book, BookStatus } from './book';
 
 @Component({
   selector: 'app-kanban-column',
-  standalone: true,
   imports: [NgClass, CdkDropList, CdkDrag, NgOptimizedImage],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

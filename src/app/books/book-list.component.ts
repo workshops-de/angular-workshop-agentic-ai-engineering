@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { Book } from './book';
 import { BookApiClient, PaginatedResponse } from './book-api-client.service';
 import { BookItemComponent } from './book-item.component';
@@ -58,15 +60,13 @@ import { BookItemComponent } from './book-item.component';
             <p class="mt-4 text-gray-600">Loading books...</p>
           </div>
         </div>
-      }
-
-      @if (!loading()) {
+      } @else {
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-          @for (book of books(); track book.id) {
-            <app-book-item [book]="book"></app-book-item>
-          }
-
-          @if (books().length === 0) {
+          @if (books().length > 0) {
+            @for (book of books(); track book.id) {
+              <app-book-item [book]="book"></app-book-item>
+            }
+          } @else {
             <div
               class="col-span-full flex flex-col items-center justify-center py-16 text-center bg-gray-50 rounded-xl"
             >
@@ -209,18 +209,22 @@ export class BookListComponent implements OnInit {
 
   private loadBooks(search?: string, page: number = 1): void {
     this.loading.set(true);
-    this.bookApiClient.getBooksWithPagination(page, this.pageSize(), search).subscribe({
-      next: (response: PaginatedResponse<Book>) => {
-        this.books.set(response.data);
-        this.totalCount.set(response.totalCount);
-        this.currentPage.set(response.currentPage);
-        this.loading.set(false);
-      },
-      error: error => {
-        console.error('Error fetching books:', error);
-        this.loading.set(false);
-      }
-    });
+    this.bookApiClient
+      .getBooksWithPagination(page, this.pageSize(), search)
+      .pipe(
+        tap((response: PaginatedResponse<Book>) => {
+          this.books.set(response.data);
+          this.totalCount.set(response.totalCount);
+          this.currentPage.set(response.currentPage);
+          this.loading.set(false);
+        }),
+        catchError(error => {
+          console.error('Error fetching books:', error);
+          this.loading.set(false);
+          return of(null);
+        })
+      )
+      .subscribe();
   }
 
   onSearchChange(): void {

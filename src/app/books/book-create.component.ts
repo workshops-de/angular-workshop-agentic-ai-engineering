@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 import { ToastService } from '../shared/toast.service';
 import { BookApiClient } from './book-api-client.service';
 
 @Component({
   selector: 'app-book-create',
-  imports: [ReactiveFormsModule, RouterModule],
+  imports: [ReactiveFormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="container mx-auto px-4 py-8 max-w-4xl">
@@ -15,15 +15,15 @@ import { BookApiClient } from './book-api-client.service';
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">
           <div class="flex items-center">
-            <button
-              (click)="goBack()"
+            <a
+              [routerLink]="['/']"
               class="flex items-center text-blue-600 hover:text-blue-800 font-medium transition duration-200 mr-4"
             >
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
               </svg>
               Back
-            </button>
+            </a>
             <h1 class="text-3xl font-bold text-gray-900">Create New Book</h1>
           </div>
         </div>
