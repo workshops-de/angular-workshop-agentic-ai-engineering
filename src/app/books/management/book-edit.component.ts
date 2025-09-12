@@ -4,11 +4,10 @@ import { Control, form, maxLength, min, minLength, pattern, required } from '@an
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { ToastService } from '../shared/toast.service';
-import { Book } from './book';
-import { BookApiClient } from './book-api-client.service';
-import { ErrorMessageComponent } from './error-message.component';
-import { LoadingIndicationComponent } from './loading-indication.component';
+import { Book } from '../core/book';
+import { BookApiClient } from '../core/book-api-client.service';
+import { ErrorMessageComponent } from '../shared/error-message.component';
+import { LoadingIndicationComponent } from '../shared/loading-indication.component';
 
 @Component({
   selector: 'app-book-edit',
@@ -249,7 +248,6 @@ export class BookEditComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly bookApiClient = inject(BookApiClient);
-  private readonly toastService = inject(ToastService);
 
   loading = signal(true);
   error = signal(false);
@@ -333,13 +331,11 @@ export class BookEditComponent implements OnInit {
       .pipe(
         tap(updatedBook => {
           if (updatedBook) {
-            this.toastService.show('Book updated successfully!', 3000);
             this.router.navigate(['/book', this.book().id]);
           }
         }),
         catchError(error => {
           console.error('Error updating book:', error);
-          this.toastService.show('Failed to update book. Please try again.', 5000);
           this.saving.set(false);
           return of(null);
         })

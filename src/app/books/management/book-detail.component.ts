@@ -2,11 +2,11 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { Book } from './book';
-import { BookApiClient } from './book-api-client.service';
-import { BookCoverComponent } from './book-cover.component';
-import { ErrorMessageComponent } from './error-message.component';
-import { LoadingIndicationComponent } from './loading-indication.component';
+import { Book } from '../core/book';
+import { BookApiClient } from '../core/book-api-client.service';
+import { BookCoverComponent } from '../display/book-cover.component';
+import { ErrorMessageComponent } from '../shared/error-message.component';
+import { LoadingIndicationComponent } from '../shared/loading-indication.component';
 
 @Component({
   selector: 'app-book-detail',

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Book } from './book';
+import { Book } from '../core/book';
 import { BookCoverComponent } from './book-cover.component';
 
 @Component({

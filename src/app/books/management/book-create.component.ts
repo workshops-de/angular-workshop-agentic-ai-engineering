@@ -3,9 +3,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { Control, form, maxLength, min, minLength, pattern, required } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
-import { ToastService } from '../shared/toast.service';
-import { Book } from './book';
-import { BookApiClient } from './book-api-client.service';
+import { Book } from '../core/book';
+import { BookApiClient } from '../core/book-api-client.service';
 
 @Component({
   selector: 'app-book-create',
@@ -222,7 +221,6 @@ import { BookApiClient } from './book-api-client.service';
 export class BookCreateComponent {
   private readonly router = inject(Router);
   private readonly bookApiClient = inject(BookApiClient);
-  private readonly toastService = inject(ToastService);
 
   saving = signal(false);
 
@@ -272,14 +270,12 @@ export class BookCreateComponent {
       .pipe(
         catchError(error => {
           console.error('Error creating book:', error);
-          this.toastService.show('Failed to create book. Please try again.', 5000);
           this.saving.set(false);
           return of(null);
         })
       )
       .subscribe(createdBook => {
         if (createdBook) {
-          this.toastService.show('Book created successfully!', 3000);
           this.router.navigate(['/']); // Navigate back to book list
         }
       });

@@ -2,7 +2,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Book, BookStatus } from './book';
+import { Book, BookStatus } from '../core/book';
 import { KanbanColumnComponent } from './kanban-column.component';
 import { KanbanService } from './kanban.service';
 

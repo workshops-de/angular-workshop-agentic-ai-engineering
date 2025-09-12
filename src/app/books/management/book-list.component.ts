@@ -3,18 +3,22 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { Book } from './book';
-import { BookApiClient, PaginatedResponse } from './book-api-client.service';
-import { BookItemComponent } from './book-item.component';
+import { Book } from '../core/book';
+import { BookApiClient, PaginatedResponse } from '../core/book-api-client.service';
+import { BookItemComponent } from '../display/book-item.component';
+import { BookHighlightsComponent } from '../highlights/book-highlights.component';
 
 @Component({
   selector: 'app-book-list',
-  imports: [FormsModule, BookItemComponent, RouterLink],
+  imports: [FormsModule, BookItemComponent, RouterLink, BookHighlightsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <!-- Book Highlights Carousel -->
+    <app-book-highlights></app-book-highlights>
+
     <div class="container mx-auto px-4 py-12 max-w-7xl">
       <div class="flex items-center justify-between mb-10 border-b pb-4 border-gray-200">
-        <h1 class="text-3xl font-bold text-blue-700">Book Collection</h1>
+        <h1 data-testid="book-collection-title" class="text-3xl font-bold text-blue-700">Book Collection</h1>
         <a
           routerLink="/book/create"
           class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md flex items-center font-medium transition duration-200"
@@ -35,6 +39,7 @@ import { BookItemComponent } from './book-item.component';
       <div class="mb-6">
         <div class="flex items-center border-b-2 border-gray-300 py-2">
           <input
+            data-testid="book-search-input"
             type="text"
             [(ngModel)]="searchTermModel"
             (ngModelChange)="onSearchChange()"
@@ -57,14 +62,14 @@ import { BookItemComponent } from './book-item.component';
             <div
               class="h-16 w-16 rounded-full border-4 border-t-blue-700 border-r-blue-700 border-b-gray-200 border-l-gray-200 animate-spin"
             ></div>
-            <p class="mt-4 text-gray-600">Loading books...</p>
+            <p data-testid="loading-indicator" class="mt-4 text-gray-600">Loading books...</p>
           </div>
         </div>
       } @else {
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-8">
           @if (books().length > 0) {
             @for (book of books(); track book.id) {
-              <app-book-item [book]="book"></app-book-item>
+              <app-book-item data-testid="book-item" [book]="book"></app-book-item>
             }
           } @else {
             <div

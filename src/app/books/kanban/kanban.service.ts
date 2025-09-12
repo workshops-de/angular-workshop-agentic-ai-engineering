@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { Book, BookStatus } from './book';
-import { BookApiClient } from './book-api-client.service';
+import { Book, BookStatus } from '../core/book';
+import { BookApiClient } from '../core/book-api-client.service';
 
 export interface KanbanState {
   books: Book[];

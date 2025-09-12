@@ -1,7 +1,7 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { NgClass, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { Book, BookStatus } from './book';
+import { Book, BookStatus } from '../core/book';
 
 @Component({
   selector: 'app-kanban-column',

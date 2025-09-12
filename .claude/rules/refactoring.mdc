@@ -3,6 +3,10 @@ alwaysApply: false
 description: 'Instructions to refactor Angular building-blocks: components, services, pipes, directives'
 ---
 
+### One module per file
+
+- Generate a file for each `function`, `type`, `interface`, `class`
+
 ## Component
 
 ### Decorator

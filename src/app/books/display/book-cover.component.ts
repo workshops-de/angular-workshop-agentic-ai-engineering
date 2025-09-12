@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Book } from '../core/book';
 
 @Component({
   selector: 'app-book-cover',
@@ -33,5 +34,5 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   `
 })
 export class BookCoverComponent {
-  book = input.required<import('./book').Book>();
+  book = input.required<Book>();
 }
