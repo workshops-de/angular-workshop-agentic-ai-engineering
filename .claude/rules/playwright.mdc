@@ -1,0 +1,32 @@
+---
+alwaysApply: false
+glob: tests/**/*.ts
+description: Guide to write reliable and stable tests with playwright
+---
+
+## Test Ids
+
+- Prefer selecting elements with `data-testid`
+- If no `data-testid` is present, add `data-testid` with a corresponding id to the template of the respective Angular Component template
+
+## Test Scope
+
+- Only test what is asked for
+- Be as concise as possible
+
+## Test description
+
+- use plain `test`-Method without describe
+- Write test description in Gherkin syntax (see example)
+
+```ts
+import { test, expect } from '@playwright/test';
+
+test(`
+  Given a list of books
+  When typing database in the search
+  Then it shows at least one search result
+`, () => {
+  // ..
+});
+```
